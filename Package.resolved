@@ -30,28 +30,28 @@
       },
       {
         "package": "Ink",
-        "repositoryURL": "https://github.com/johnsundell/ink.git",
+        "repositoryURL": "https://github.com/Vithanco/ink.git",
         "state": {
           "branch": null,
-          "revision": "bcc9f219900a62c4210e6db726035d7f03ae757b",
-          "version": "0.6.0"
+          "revision": "49b41cc5f1dde7a602c9ff63b6b4fcb48a94f2eb",
+          "version": "0.6.1"
         }
       },
       {
         "package": "Plot",
-        "repositoryURL": "https://github.com/johnsundell/plot.git",
+        "repositoryURL": "https://github.com/Vithanco/plot.git",
         "state": {
           "branch": null,
-          "revision": "271926b4413fe868739d99f5eadcf2bd6cd62fb8",
-          "version": "0.14.0"
+          "revision": "ae4ca6f2ec650733d3352628aca03b728e83a3c8",
+          "version": "0.14.4"
         }
       },
       {
         "package": "Publish",
-        "repositoryURL": "https://github.com/johnsundell/publish.git",
+        "repositoryURL": "https://github.com/vithanco/publish.git",
         "state": {
           "branch": null,
-          "revision": "1c8ad00d39c985cb5d497153241a2f1b654e0d40",
+          "revision": "bf0243a1c0f3290d234101865dfe4bbca2b8f67f",
           "version": "0.9.0"
         }
       },

@@ -16,7 +16,7 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(name: "Publish", url: "https://github.com/johnsundell/publish.git", from: "0.8.0"),
+        .package(name: "Publish", url: "https://github.com/vithanco/publish.git", from: "0.9.0"),
         .package(name: "SwiftSoup", url: "https://github.com/scinfu/SwiftSoup.git", from: "2.6.0")
     ],
     targets: [
