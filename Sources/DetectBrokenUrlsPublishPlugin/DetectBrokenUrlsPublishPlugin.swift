@@ -55,7 +55,15 @@ struct BrokenUrlsDetector<Site: Website> {
         for element in linkElements {
             let linkHref = try element.attr("href")
             let linkText = try element.text().orEmpty("a href")
-            try await checkAvailability(target: linkHref, text: linkText, path: path)
+            
+            if linkHref.first == "#" {
+                let elementId = String(linkHref.dropFirst())
+                if try document.getElementById(elementId) == nil {
+                    throw PublishingError(infoMessage: "Can't find element with id '\(elementId) (\(linkText))' in file at '\(path)'")
+                }
+            } else {
+                try await checkAvailability(target: linkHref, text: linkText, path: path)
+            }
         }
         
         // Check image elements

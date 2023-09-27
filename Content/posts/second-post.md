@@ -9,6 +9,9 @@ My second post's text.
 
 The URLs here are broken.
 
+<div id="top"></div>
+<a href="#top"></a>
+
 <picture>
   <source srcset="/assets/images/swift~dark.svg" media="(prefers-color-scheme: dark)" />
   <img src="/assets/images/swift.svg" alt="" />
