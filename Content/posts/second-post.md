@@ -11,6 +11,7 @@ The URLs here are broken.
 
 <div id="top"></div>
 <a href="#top"></a>
+<a href="/posts/first-post/index.html#top"></a>
 
 <picture>
   <source srcset="/assets/images/swift~dark.svg" media="(prefers-color-scheme: dark)" />

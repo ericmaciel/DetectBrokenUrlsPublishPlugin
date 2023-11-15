@@ -101,12 +101,14 @@ struct BrokenUrlsDetector<Site: Website> {
     
     func checkAvailability(target: String, text: String, path: Path) async throws {
         guard target.hasPrefix("http"), let url = URL(string: target) else {
+            
+            let fileName = target.split(separator: "#").first?.description ?? target
             // Not remote, check for local resource
-            let targetPath = target.first == "/" ? target : path.appendingComponent(target).string
-            let notFound = !(outputFolder.containsFile(at: targetPath)
-                             || outputFolder.containsSubfolder(at: targetPath))
+            let targetPath = target.first == "/" ? fileName : path.appendingComponent(fileName).string
+            let notFound = !(outputFolder.containsFile(at: fileName)
+                             || outputFolder.containsSubfolder(at: fileName))
             if notFound {
-                throw PublishingError(infoMessage: "Can't find the path to '\(target) (\(text))' in file at '\(path)'")
+                throw PublishingError(infoMessage: "Can't find the path to '\(fileName)' (reference is '\(text)' in file at '\(path)'")
             }
             return
         }
@@ -120,9 +122,9 @@ struct BrokenUrlsDetector<Site: Website> {
             }
             statusCode = response.statusCode
         } catch {
-            throw PublishingError(infoMessage: "Can't reach the url at '\(url) (\(text))' in file at '\(path)'")
+            throw PublishingError(infoMessage: "Can't reach the url at '\(url)' (link text is '\(text)') in file at '\(path)'")
         }
-        throw PublishingError(infoMessage: "Can't find the url at '\(url) (\(text))' (status code: \(statusCode)) in file at '\(path)'")
+        throw PublishingError(infoMessage: "Can't find the url at '\(url)' (link text is '\(text)') (status code: \(statusCode)) in file at '\(path)'")
     }
     
     func getResponse(for url: URL) async throws -> HTTPURLResponse {
