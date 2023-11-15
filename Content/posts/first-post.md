@@ -17,3 +17,7 @@ The URLs here are good.
 
 <form action="https://api.staticforms.xyz/submit">
 </form>
+
+
+This one should be fine, as it doesn't start with "http"
+[vithanco://?command=newDocument&domainID=com.vithanco.domains.ibis](vithanco://?command=newDocument&domainID=com.vithanco.domains.ibis)
