@@ -100,10 +100,12 @@ struct BrokenUrlsDetector<Site: Website> {
     }
     
     func checkAvailability(target: String, text: String, path: Path) async throws {
+        if target.hasPrefix("vithanco:") || target.hasPrefix("mailto:") { // this is actually a dirty hack.
+            return
+        }
+        
         guard target.hasPrefix("http"), let url = URL(string: target) else {
-            if target.hasPrefix("vithanco:") { // this is actually a dirty hack.
-                return
-            }
+
             let fileName = target.split(separator: "#").first?.description ?? target
             // Not remote, check for local resource
             let targetPath = target.first == "/" ? fileName : path.appendingComponent(fileName).string
