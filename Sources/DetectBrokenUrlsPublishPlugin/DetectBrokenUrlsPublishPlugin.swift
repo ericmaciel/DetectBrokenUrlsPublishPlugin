@@ -25,7 +25,7 @@ extension Plugin {
         Plugin(name: "Detect Broken Urls in folder") { context in
             let folder = try context.outputFolder(at: path)
             let files = includingSubfolders ? folder.files.recursive : folder.files
-            try await files.asyncForEach(BrokenUrlsDetector(context: context).scan)
+            try await files.concurrentForEach(BrokenUrlsDetector(context: context).scan)
         }
     }
 }
@@ -52,7 +52,7 @@ struct BrokenUrlsDetector<Site: Website> {
         
         // Check link elements
         let linkElements = try document.select("a")
-        for element in linkElements {
+        try await linkElements.concurrentForEach { element in
             let linkHref = try element.attr("href")
             let linkText = try element.text().orEmpty("a href")
             
@@ -68,7 +68,7 @@ struct BrokenUrlsDetector<Site: Website> {
         
         // Check image elements
         let imgElements = try document.select("img")
-        for element in imgElements {
+        try await imgElements.concurrentForEach { element in
             let imgSrc = try element.attr("src")
             let imgText = try element.attr("title")
                 .orEmpty(try element.attr("alt"))
@@ -78,21 +78,21 @@ struct BrokenUrlsDetector<Site: Website> {
         
         // Check source elements
         let sourceElements = try document.select("source")
-        for element in sourceElements {
+        try await sourceElements.concurrentForEach { element in
             let imgSrc = try element.attr("srcset")
             try await checkAvailability(target: imgSrc, text: "source srcset", path: path)
         }
         
         // Check form elements
         let formElements = try document.select("form")
-        for element in formElements {
+        try await formElements.concurrentForEach { element in
             let formAction = try element.attr("action")
             try await checkAvailability(target: formAction, text: "form action", path: path)
         }
         
         // Check iframe elements
         let iframeElements = try document.select("iframe")
-        for element in iframeElements {
+        try await iframeElements.concurrentForEach { element in
             let iframeSrc = try element.attr("src")
             let iframeTitle = try element.attr("title").orEmpty("iframe src")
             try await checkAvailability(target: iframeSrc, text: iframeTitle, path: path)
