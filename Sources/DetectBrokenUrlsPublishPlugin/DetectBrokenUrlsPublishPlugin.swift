@@ -42,7 +42,7 @@ struct BrokenUrlsDetector<Site: Website> {
             return
         }
         
-        let html = try String(contentsOf: file.url)
+        let html = try file.readAsString()
         try await scan(html: html, path: Path(file.path))
     }
     
@@ -100,20 +100,28 @@ struct BrokenUrlsDetector<Site: Website> {
     }
     
     func checkAvailability(target: String, text: String, path: Path) async throws {
-        if target.hasPrefix("vithanco:") || target.hasPrefix("mailto:") { // this is actually a dirty hack.
+        guard let url = URL(string: target) else {
+            return
+        }
+
+        guard let scheme = url.scheme, !scheme.isEmpty else {
+            // Not remote, check for local resource
+            // Using url.path to avoid url fragment (like in "/path/filename.html#fragment")
+            let targetPath = if url.path.first != "/", let folderPath = try? File(path: path.string).parent?.path {
+                Path(folderPath).appendingComponent(url.path).string
+            } else {
+                url.path
+            }
+            let notFound = !(outputFolder.containsFile(at: targetPath)
+                             || outputFolder.containsSubfolder(at: targetPath))
+            if notFound {
+                throw PublishingError(infoMessage: "Can't find the path to '\(targetPath)' (reference is '\(text)' in file at '\(path)'")
+            }
             return
         }
         
-        guard target.hasPrefix("http"), let url = URL(string: target) else {
-
-            let fileName = target.split(separator: "#").first?.description ?? target
-            // Not remote, check for local resource
-            let targetPath = target.first == "/" ? fileName : path.appendingComponent(fileName).string
-            let notFound = !(outputFolder.containsFile(at: fileName)
-                             || outputFolder.containsSubfolder(at: fileName))
-            if notFound {
-                throw PublishingError(infoMessage: "Can't find the path to '\(fileName)' (reference is '\(text)' in file at '\(path)'")
-            }
+        guard scheme.hasPrefix("http") else {
+            // Other schemes are ignored
             return
         }
         var statusCode = 200
