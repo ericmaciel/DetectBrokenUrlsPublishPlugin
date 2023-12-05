@@ -110,8 +110,8 @@ struct BrokenUrlsDetector<Site: Website> {
                 }
             }
             
-            // Propagate any errors thrown by the group's tasks
-            for try await _ in group {}
+            // Wait for group's tasks and propagate any errors thrown
+            try await group.waitForAll()
         }
     }
     
