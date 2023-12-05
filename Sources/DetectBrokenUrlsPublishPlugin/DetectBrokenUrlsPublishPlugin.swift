@@ -50,52 +50,68 @@ struct BrokenUrlsDetector<Site: Website> {
 
         let document = try SwiftSoup.parse(html)
         
-        // Check link elements
-        let linkElements = try document.select("a")
-        try await linkElements.concurrentForEach { element in
-            let linkHref = try element.attr("href")
-            let linkText = try element.text().orEmpty("a href")
+        try await withThrowingTaskGroup(of: Void.self) { group in
             
-            if linkHref.first == "#" {
-                let elementId = String(linkHref.dropFirst())
-                if try document.getElementById(elementId) == nil {
-                    throw PublishingError(infoMessage: "Can't find element with id '\(elementId) (\(linkText))' in file at '\(path)'")
+            // Check link elements
+            let linkElements = try document.select("a")
+            for element in linkElements {
+                group.addTask {
+                    let linkHref = try element.attr("href")
+                    let linkText = try element.text().orEmpty("a href")
+                    
+                    if linkHref.first == "#" {
+                        let elementId = String(linkHref.dropFirst())
+                        if try document.getElementById(elementId) == nil {
+                            throw PublishingError(infoMessage: "Can't find element with id '\(elementId) (\(linkText))' in file at '\(path)'")
+                        }
+                    } else {
+                        try await checkAvailability(target: linkHref, text: linkText, path: path)
+                    }
                 }
-            } else {
-                try await checkAvailability(target: linkHref, text: linkText, path: path)
             }
-        }
-        
-        // Check image elements
-        let imgElements = try document.select("img")
-        try await imgElements.concurrentForEach { element in
-            let imgSrc = try element.attr("src")
-            let imgText = try element.attr("title")
-                .orEmpty(try element.attr("alt"))
-                .orEmpty("img src")
-            try await checkAvailability(target: imgSrc, text: imgText, path: path)
-        }
-        
-        // Check source elements
-        let sourceElements = try document.select("source")
-        try await sourceElements.concurrentForEach { element in
-            let imgSrc = try element.attr("srcset")
-            try await checkAvailability(target: imgSrc, text: "source srcset", path: path)
-        }
-        
-        // Check form elements
-        let formElements = try document.select("form")
-        try await formElements.concurrentForEach { element in
-            let formAction = try element.attr("action")
-            try await checkAvailability(target: formAction, text: "form action", path: path)
-        }
-        
-        // Check iframe elements
-        let iframeElements = try document.select("iframe")
-        try await iframeElements.concurrentForEach { element in
-            let iframeSrc = try element.attr("src")
-            let iframeTitle = try element.attr("title").orEmpty("iframe src")
-            try await checkAvailability(target: iframeSrc, text: iframeTitle, path: path)
+            
+            // Check image elements
+            let imgElements = try document.select("img")
+            for element in imgElements {
+                group.addTask {
+                    let imgSrc = try element.attr("src")
+                    let imgText = try element.attr("title")
+                        .orEmpty(try element.attr("alt"))
+                        .orEmpty("img src")
+                    try await checkAvailability(target: imgSrc, text: imgText, path: path)
+                }
+            }
+            
+            // Check source elements
+            let sourceElements = try document.select("source")
+            for element in sourceElements {
+                group.addTask {
+                    let imgSrc = try element.attr("srcset")
+                    try await checkAvailability(target: imgSrc, text: "source srcset", path: path)
+                }
+            }
+            
+            // Check form elements
+            let formElements = try document.select("form")
+            for element in formElements {
+                group.addTask {
+                    let formAction = try element.attr("action")
+                    try await checkAvailability(target: formAction, text: "form action", path: path)
+                }
+            }
+            
+            // Check iframe elements
+            let iframeElements = try document.select("iframe")
+            for element in iframeElements {
+                group.addTask {
+                    let iframeSrc = try element.attr("src")
+                    let iframeTitle = try element.attr("title").orEmpty("iframe src")
+                    try await checkAvailability(target: iframeSrc, text: iframeTitle, path: path)
+                }
+            }
+            
+            // Propagate any errors thrown by the group's tasks
+            for try await _ in group {}
         }
     }
     
@@ -142,6 +158,7 @@ struct BrokenUrlsDetector<Site: Website> {
     func getResponse(for url: URL) async throws -> HTTPURLResponse {
         var request = URLRequest(url: url)
         request.httpMethod = "HEAD"
+        request.timeoutInterval = 15
         let (_, response) = try await URLSession.shared.data(for: request)
         return response as! HTTPURLResponse
     }
